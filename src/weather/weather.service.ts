@@ -8,18 +8,23 @@ export class WeatherService {
 
   constructor(private readonly httpService: HttpService) {}
 
-  async getWeatherByCity(weatherCityDto) {
+  async getWeatherByCity(city: string) {
     const apiKey = process.env.OPENWEATHER_API_KEY;
-    const { city, units } = weatherCityDto;
+    if (!apiKey) {
+      throw new Error('API key is missing in environment variables.');
+    }
     try {
       const response = await lastValueFrom(
         this.httpService.get(this.apiUrl, {
-          params: { q: city, appid: apiKey, units },
+          params: { q: city, appid: apiKey, units: 'metric' },
         }),
       );
       return response.data;
     } catch (error) {
-      throw error;
+      console.error('Error fetching weather data:', error.response?.data || error.message);
+      throw new Error(
+        error.response?.data?.message || 'Failed to fetch weather data from OpenWeatherMap.',
+      );
     }
   }
 }
